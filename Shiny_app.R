@@ -1,5 +1,6 @@
 # Shiny app
 library(shiny); library(ggiraph); library(ukcovidtools); library(ggplot2); library(tidyverse)
+library(ggspatial); library(maptools); library(sp)
 
 load('R0timeseries.RData')
 data("UKCovidMaps")
@@ -8,6 +9,12 @@ r0shapes = UKCovidMaps$unitaryAuthority %>%
   mutate(ago=difftime(date,lubridate::now(),units="days")) %>% 
   filter(!is.na(date))
 r0shapes = r0shapes %>% mutate(`Median(R)` = ifelse(`Median(R)`>10, 9.999,`Median(R)`))
+
+keyDates = tibble(
+  date = as.Date(c("2020-03-13","2020-03-16","2020-03-19","2020-03-23")), #max(r0shapes$date-1, na.rm=TRUE)),
+  impactDate = as.Date(c("2020-03-14","2020-03-21","2020-03-24","2020-03-28")), #max(r0shapes$date-1, na.rm=TRUE)),
+  event = c("Inpatient only testing","Social isolation of vulnerable","Travel ban / school closure","Stay at home") #,"Latest")
+) %>% mutate(label = paste0(date,": \n",event))
 r0shapes_key = r0shapes %>% inner_join(keyDates, by="date")
 
 # Function for creating the map
