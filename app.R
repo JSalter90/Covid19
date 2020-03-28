@@ -37,12 +37,32 @@ createMap <- function(r0shapes, Location, Date){
       breaks=c(0.1,0.4,1,2.5,10), 
       labels=c("<0.1","0.4","1","2.5",">10"))
   
+  if (Location == "East of England"){
+    mm = mm + coord_sf(crs = 4326, xlim = c(-1, 2), ylim = c(51.25, 53.25), expand = FALSE)
+  }
+  
   if (Location == "London"){
-    mm = mm + coord_sf(crs = 4326,xlim = c(-0.7, 0.5), ylim = c(51.25, 51.75), expand = FALSE)
+    mm = mm + coord_sf(crs = 4326, xlim = c(-0.7, 0.5), ylim = c(51.25, 51.75), expand = FALSE)
+  }
+  
+  if (Location == "Midlands"){
+    mm = mm + coord_sf(crs = 4326, xlim = c(-3.5, 0.5), ylim = c(51.5, 53.75), expand = FALSE)
+  }
+  
+  if (Location == "North East and Yorkshire"){
+    mm = mm + coord_sf(crs = 4326, xlim = c(-2.75, 0.25), ylim = c(53.5, 56), expand = FALSE)
+  }
+  
+  if (Location == "North West"){
+    mm = mm + coord_sf(crs = 4326, xlim = c(-3.75, -1.75), ylim = c(52.75, 55.25), expand = FALSE)
+  }
+  
+  if (Location == "South East"){
+    mm = mm + coord_sf(crs = 4326, xlim = c(-1.5, 1.5), ylim = c(50.5, 51.75), expand = FALSE)
   }
   
   if (Location == "South West"){
-    mm = mm + coord_sf(crs = 4326,xlim = c(-6, -1), ylim = c(49.75, 51.75), expand = FALSE)
+    mm = mm + coord_sf(crs = 4326, xlim = c(-6, -1), ylim = c(49.75, 51.75), expand = FALSE)
   }
 
   return(mm)
@@ -65,7 +85,14 @@ ui = fluidPage(
     sidebarPanel(
       selectInput(inputId = "Location",
                   label = "Select a region:",
-                  choices = list("England" = "England", "London" = "London", "South West" = "South West")),
+                  choices = list("England" = "England", 
+                                 "East of England" = "East of England", 
+                                 "London" = "London", 
+                                 "Midlands" = "Midlands",
+                                 "North East and Yorkshire" = "North East and Yorkshire",
+                                 "North West" = "North West",
+                                 "South East" = "South East",
+                                 "South West" = "South West")),
       
       sliderInput(inputId = "Date",
                   label = "Date:",
@@ -87,7 +114,7 @@ server = function(input, output) {
   
   # Create the map
   output$map <- renderGirafe({
-    ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)))
+    ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)), width_svg = 8, height_svg = 8)
   })
 
 }
