@@ -1,5 +1,6 @@
 # Covid19
-Covid19 modelling
+
+## Creating the Shiny app
 
 If not already installed, do:
 
