@@ -18,14 +18,26 @@ keyDates = tibble(
 r0shapes_key = r0shapes %>% inner_join(keyDates, by="date")
 
 # Function for creating the map
-createMap <- function(r0shapes, Location, Date){
+createMap <- function(r0shapes, Location, Date, Summary){
   
   # Subset data by date
   r0shapes <- subset(r0shapes, date == Date)  
   
+  if (Summary == "Median"){
+    ggfill <- geom_sf(aes(fill=`Median(R)`), data=r0shapes)
+  }
+  
+  if (Summary == "Lower"){
+    ggfill <- geom_sf(aes(fill=`Quantile.0.025(R)`), data=r0shapes)
+  }
+  
+  if (Summary == "Upper"){
+    ggfill <- geom_sf(aes(fill=`Quantile.0.975(R)`), data=r0shapes)
+  }
+  
   # Map
   mm <- ggplot(r0shapes)+
-    geom_sf(aes(fill=`Median(R)`), data=r0shapes)+
+    ggfill+
     scale_fill_gradient2(
       low="green",
       mid="white",
@@ -35,7 +47,8 @@ createMap <- function(r0shapes, Location, Date){
       na.value = "grey80", 
       limits=c(0.1,10), 
       breaks=c(0.1,0.4,1,2.5,10), 
-      labels=c("<0.1","0.4","1","2.5",">10"))
+      labels=c("<0.1","0.4","1","2.5",">10"),
+      name=paste(Summary))
   
   if (Location == "East of England"){
     mm = mm + coord_sf(crs = 4326, xlim = c(-1, 2), ylim = c(51.25, 53.25), expand = FALSE)
@@ -76,7 +89,7 @@ createMap <- function(r0shapes, Location, Date){
 ui = fluidPage(
   
   # App title
-  titlePanel("Rt by unitary authority over time"),
+  titlePanel("R(t) by unitary authority over time"),
   
   # Sidebar layout with input and output definitions
   sidebarLayout(
@@ -100,6 +113,13 @@ ui = fluidPage(
                   max = max(r0shapes$date),
                   value = max(r0shapes$date),
                   step = 1),
+      
+      selectInput(inputId = "Summary",
+                  label = "Select statistic:",
+                  choices = list("Lower" = "Lower",
+                                 "Median" = "Median",
+                                 "Upper" = "Upper"),
+                  selected = "Median")
     ),
     
     # Main panel for displaying outputs
@@ -113,7 +133,7 @@ ui = fluidPage(
 server = function(input, output) {
   
   # Create the map
-  output$map <- renderPlot({createMap(r0shapes, input$Location, input$Date) })
+  output$map <- renderPlot({createMap(r0shapes, input$Location, input$Date, input$Summary) })
   
   #output$map <- renderGirafe({
   #  ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)), width_svg = 8, height_svg = 8)
