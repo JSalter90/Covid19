@@ -81,7 +81,7 @@ ui = fluidPage(
 # Define the server
 server = function(input, output) {
   
-  # Create the interactive world map
+  # Create the map
   output$map <- renderGirafe({
     ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)))
   })
