@@ -145,8 +145,8 @@ englandnhsplot
 
 R0timeseries = ts$tidyEnglandUnitAuth %>% normaliseAndCleanse() %>% group_by(GSS_CD, GSS_NM) %>% tidyEstimateRt(cfg, window=5)
 
-setwd('~/Dropbox/')
-write_csv(R0timeseries, "Covid19/Supplementary_Rt_Timeseries_by_Unitary_Authority.csv")
+save(R0timeseries, file = 'R0timeseries.RData')
+#write_csv(R0timeseries, "Covid19/Supplementary_Rt_Timeseries_by_Unitary_Authority.csv")
 
 data("UKCovidMaps")
 
@@ -181,8 +181,8 @@ london = ukwide + coord_sf(crs = 4326,xlim = c(-0.7, 0.5), ylim = c(51.25, 51.75
 # combined = ukwide / london + plot_layout(guides="collect")
 #ukwide %>% standardPrintOutput::saveThirdPageFigure("~/Dropbox/covid19/lockdown-impact/englandMap")
 #london %>% standardPrintOutput::saveThirdPageFigure("~/Dropbox/covid19/lockdown-impact/londonMap")
-ukwide
-london
+#ukwide
+#london
 
 ukwide = ggplot(r0shapes)+
   geom_sf(aes(fill=`Median(R)`), data=r0shapes)+
@@ -200,8 +200,8 @@ ukwide = ggplot(r0shapes)+
 #  standardPrintOutput::mapTheme()
 london = ukwide + coord_sf(crs = 4326,xlim = c(-0.7, 0.5), ylim = c(51.25, 51.75), expand = FALSE)
 
-ukwide
-london
+#ukwide
+#london
 
 anim = ukwide+gganimate::transition_time(date)
 gif = gganimate::animate(anim, renderer=gganimate::gifski_renderer())

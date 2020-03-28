@@ -1,8 +1,7 @@
 # Shiny app
-library(shiny)
-library(ggiraph)
+library(shiny); library(ggiraph); library(ukcovidtools); library(ggplot2); library(tidyverse)
 
-# Load the data
+load('R0timeseries.RData')
 data("UKCovidMaps")
 r0shapes = UKCovidMaps$unitaryAuthority %>% 
   left_join(R0timeseries, by=c("ctyua19cd"="GSS_CD")) %>% 
