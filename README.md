@@ -14,4 +14,4 @@ Then
 runApp('Shiny_app.R')
 ```
 
-creates the app.
+creates the app, given the current time series of R0 (R0timeseries.RData)
