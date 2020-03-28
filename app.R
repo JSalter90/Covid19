@@ -1,6 +1,6 @@
 # Shiny app
 library(shiny); library(ggiraph); library(ukcovidtools); library(ggplot2); library(tidyverse)
-library(ggspatial); library(maptools); library(sp)
+library(ggspatial); library(maptools); library(sp); library(rgdal); library(rgeos); library(patchwork); library(ggrepel)
 
 load('R0timeseries.RData')
 data("UKCovidMaps")
@@ -104,7 +104,7 @@ ui = fluidPage(
     
     # Main panel for displaying outputs
     mainPanel(
-      girafeOutput("map")
+      plotOutput("map")
     )
   )
 )
@@ -113,9 +113,11 @@ ui = fluidPage(
 server = function(input, output) {
   
   # Create the map
-  output$map <- renderGirafe({
-    ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)), width_svg = 8, height_svg = 8)
-  })
+  output$map <- renderPlot({createMap(r0shapes, input$Location, input$Date) })
+  
+  #output$map <- renderGirafe({
+  #  ggiraph(code = print(createMap(r0shapes, input$Location, input$Date)), width_svg = 8, height_svg = 8)
+  #})
 
 }
 
