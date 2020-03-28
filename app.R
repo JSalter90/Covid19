@@ -40,6 +40,10 @@ createMap <- function(r0shapes, Location, Date){
   if (Location == "London"){
     mm = mm + coord_sf(crs = 4326,xlim = c(-0.7, 0.5), ylim = c(51.25, 51.75), expand = FALSE)
   }
+  
+  if (Location == "South West"){
+    mm = mm + coord_sf(crs = 4326,xlim = c(-6, -1), ylim = c(49.75, 51.75), expand = FALSE)
+  }
 
   return(mm)
 }
@@ -61,7 +65,7 @@ ui = fluidPage(
     sidebarPanel(
       selectInput(inputId = "Location",
                   label = "Select a region:",
-                  choices = list("England" = "England", "London" = "London")),
+                  choices = list("England" = "England", "London" = "London", "South West" = "South West")),
       
       sliderInput(inputId = "Date",
                   label = "Date:",
