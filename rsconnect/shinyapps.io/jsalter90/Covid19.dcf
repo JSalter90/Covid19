@@ -1,0 +1,13 @@
+name: Covid19
+title: Covid19
+username:
+account: jsalter90
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2011797
+bundleId: 2936155
+url: https://jsalter90.shinyapps.io/Covid19/
+when: 1585404017.01701
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Code_from_uk-covid-datatools.R|London_Rt_by_unitary_authority_over_time.gif|Rt_by_unitary_authority_over_time.gif|Supplementary_Rt_Timeseries_by_Unitary_Authority.csv
