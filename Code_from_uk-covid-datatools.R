@@ -5,42 +5,32 @@ library(ggplot2)
 library(EpiEstim)
 library(tidyverse)
 
-UK = ukcovidtools::getUKCovidTimeseries()
-cleanRegional = UK$tidyUKRegional %>% ukcovidtools::normaliseAndCleanse()
+#UK = ukcovidtools::getUKCovidTimeseries()
+#cleanRegional = UK$tidyUKRegional %>% ukcovidtools::normaliseAndCleanse()
 
 # A list of 7 data sets of similar nature and formats
-glimpse(UK$UKregional)
-glimpse(UK$englandNHS)
-glimpse(UK$englandUnitAuth)
-glimpse(UK$englandUnitAuth2NHSregion)
-glimpse(UK$tidyUKRegional)
-glimpse(UK$tidyEnglandNHS)
-glimpse(UK$tidyEnglandUnitAuth)
+#glimpse(UK$UKregional)
+#glimpse(UK$englandNHS)
+#glimpse(UK$englandUnitAuth)
+#glimpse(UK$englandUnitAuth2NHSregion)
+#glimpse(UK$tidyUKRegional)
+#glimpse(UK$tidyEnglandNHS)
+#glimpse(UK$tidyEnglandUnitAuth)
 
 
-siConfig = EpiEstim::make_config(list(
-  mean_si = 4.7, 
-  std_si = 2.9
-))
+#siConfig = EpiEstim::make_config(list(
+#  mean_si = 4.7, 
+#  std_si = 2.9
+#))
 
-regionalRt = cleanRegional %>% ukcovidtools::tidyEstimateRt(siConfig)
-ggplot(regionalRt, aes(x=date,y=`Median(R)`,ymin=`Quantile.0.05(R)`,ymax=`Quantile.0.95(R)`,fill=uk_region,colour=uk_region))+
-  geom_ribbon(alpha=0.2, colour=NA)+geom_line()+geom_hline(yintercept = 1, colour="red")+expand_limits(y=0)
+#regionalRt = cleanRegional %>% ukcovidtools::tidyEstimateRt(siConfig)
+#ggplot(regionalRt, aes(x=date,y=`Median(R)`,ymin=`Quantile.0.05(R)`,ymax=`Quantile.0.95(R)`,fill=uk_region,colour=uk_region))+
+#  geom_ribbon(alpha=0.2, colour=NA)+geom_line()+geom_hline(yintercept = 1, colour="red")+expand_limits(y=0)
 
 
 #### Lockdown impact ####
-library(rgdal)
-library(ggplot2)
-library(ggspatial)
-library(rgeos)
-library(maptools)
-library(lubridate)
-library(patchwork)
-library(sp)
-library(ggrepel)
-library(gganimate)
-library(gifski)
-library(transformr)
+library(rgdal); library(ggplot2); library(ggspatial); library(rgeos); library(maptools); library(lubridate)
+library(patchwork); library(sp); library(ggrepel); library(gganimate); library(gifski); library(transformr)
 #ggplot2::theme_set(standardPrintOutput::defaultFigureLayout())
 
 serialIntervals = tibble(
