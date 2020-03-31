@@ -12,6 +12,7 @@ library(tidyverse)
 # Data
 ts = ukcovidtools::getUKCovidTimeseries() # contains count data by region, UA, against time
 load("R0timeseries.RData") # posterior for R(t) by UA
+load("R0regionaltimeseries.RData") # posterior for R(t) for England, Wales, Scotland, NI
 
 # Distribution for w
 serialIntervals = tibble(
@@ -66,7 +67,6 @@ w_sd <- wtSIs$std_si
 #beta <- w_mean / w_sd^2
 w_sim <- discr_si(length(I_ts):1, w_mean, w_sd) # discrete distn of the serial interval
 
-
 # Predictions
 tt_pred <- c(I_ts, rep(NA, 10))
 s <- sum(is.na(tt_pred))
@@ -81,17 +81,24 @@ plot(tt_pred, pch = 19) # seems reasonable
 #' @param UA unitary authority or region
 #' @param R0estimates output from EpiEstim, time series of R(t) by region, date
 #' @param Rt_sim fix R(t) at its median value (FALSE), or sample from its posterior (TRUE)
+#' @param Rt_set fix R(t) at a given value (default NULL)
 #' @param Nsim number of simulations
 #' @param Nt number of days to predict for
 #' @param w_mean mean of the distribution for the serial interval
 #' @param w_sd standard deviation of the distribution for the serial interval
 #'
-GenerateForecast <- function(UA, R0estimates, Rt_sim = FALSE, Nsim = 1000, Nt = 14, w_mean = 4.559007, w_sd = 4.530451){
+GenerateForecast <- function(UA, R0estimates, Rt_sim = FALSE, Rt_set = NULL, Nsim = 1000, Nt = 14, w_mean = 4.559007, w_sd = 4.530451){
   
-  UA_data <- subset(R0timeseries, GSS_NM == UA) # subsets by chosen region
+  if (UA %in% c('england', 'wales', 'scotland', 'northern ireland')){
+    UA_data <- subset(R0estimates, uk_region == UA)
+  }
+  else {
+    UA_data <- subset(R0estimates, GSS_NM == UA) # subsets by chosen region
+  }
+    
   I_ts <- UA_data$incidence # finds past time series of cases
   t <- length(I_ts) # current time t
-  start_cases <- UA_data$cumulative_cases[1] # number of cases at startof time period
+  start_cases <- UA_data$cumulative_cases[1] # number of cases at start of time period
   
   if (Rt_sim == TRUE){
     # Draw Nsim samples from distribution for R(t)
@@ -104,6 +111,10 @@ GenerateForecast <- function(UA, R0estimates, Rt_sim = FALSE, Nsim = 1000, Nt = 
   
   else {
     Rt <- rep(UA_data$`Median(R)`[dim(UA_data)[1]], Nsim) # fix at median
+  }
+  
+  if (!is.null(Rt_set)){
+    Rt <- rep(Rt_set, Nsim) # set your own Rt
   }
 
   Preds <- matrix(0, Nsim, t + Nt)
@@ -121,6 +132,56 @@ GenerateForecast <- function(UA, R0estimates, Rt_sim = FALSE, Nsim = 1000, Nt = 
   }
   return(list(Preds = Preds, Rt = Rt))
 }
+
+PlotForecast <- function(Preds, log = TRUE, uncertainty = TRUE, ...){
+  Nsim <- dim(Preds)[1]
+  Nt <- dim(Preds)[2]
+  if (log == TRUE){
+    Preds <- log(Preds)
+  }
+  qqs <- apply(Preds, 2, quantile, probs = c(0.025, 0.5, 0.975))
+  if (uncertainty == TRUE){
+    plot(1:Nt, Preds[1,], type = 'l', xlab = 'Day', ylab = 'Incidences', ...)
+    for (i in 2:Nsim){lines(1:Nt, Preds[i,])}
+    lines(1:Nt, qqs[1,], col = 'blue', lwd = 3, lty = 2)
+    lines(1:Nt, qqs[3,], col = 'blue', lwd = 3, lty = 2)
+    lines(1:Nt, qqs[2,], col = 'blue', lwd = 3, lty = 1)
+  }
+  else {
+    plot(1:Nt, qqs[2,], type = 'l', xlab = 'Day', ylab = 'Incidences', lwd = 3, col = 'blue', ...)
+  }
+}
+
+EnglandR1 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 1)
+EnglandR12 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 1.2)
+EnglandR14 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 1.4)
+EnglandR16 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 1.6)
+EnglandR18 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 1.8)
+EnglandR2 <- GenerateForecast('england', R0regionaltimeseries, Rt_set = 2)
+
+PlotForecast(EnglandR2$Preds)
+lines(1:dim(EnglandR2$Preds)[2], apply(log(EnglandR18$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(EnglandR2$Preds)[2], apply(log(EnglandR16$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(EnglandR2$Preds)[2], apply(log(EnglandR14$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(EnglandR2$Preds)[2], apply(log(EnglandR12$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(EnglandR2$Preds)[2], apply(log(EnglandR1$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+
+DevonR1 <- GenerateForecast('Devon', R0timeseries, Rt_set = 1)
+DevonR12 <- GenerateForecast('Devon', R0timeseries, Rt_set = 1.2)
+DevonR14 <- GenerateForecast('Devon', R0timeseries, Rt_set = 1.4)
+DevonR16 <- GenerateForecast('Devon', R0timeseries, Rt_set = 1.6)
+DevonR18 <- GenerateForecast('Devon', R0timeseries, Rt_set = 1.8)
+DevonR2 <- GenerateForecast('Devon', R0timeseries, Rt_set = 2)
+
+PlotForecast(DevonR2$Preds, uncertainty = FALSE)
+lines(1:dim(DevonR2$Preds)[2], apply(log(DevonR18$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(DevonR2$Preds)[2], apply(log(DevonR16$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(DevonR2$Preds)[2], apply(log(DevonR14$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(DevonR2$Preds)[2], apply(log(DevonR12$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+lines(1:dim(DevonR2$Preds)[2], apply(log(DevonR1$Preds), 2, median), col = 'blue', lty = 2, lwd = 2)
+
+
+
 
 #### Loop over all UAs ####
 region_list <- RegionNames$GSS_NM
@@ -159,54 +220,16 @@ SampledRt <- GenerateForecast('Devon', R0timeseries, Rt_sim = TRUE)
 
 png('Plots/Devon_EpiEstim.png', width = 800, height = 500)
 par(mfrow=c(1,2), mar=c(4,2,2,2))
-plot(1:dim(FixedRt$Preds)[2], log(FixedRt$Preds[1,]), type = 'l', xlab = 'Day', ylab = 'Incidences', ylim = c(0,8))
-abline(v = t, col = 'red', lwd = 2)
-for (i in 2:Nsim){lines(1:dim(FixedRt$Preds)[2], log(FixedRt$Preds[i,]))}
-qqs <- apply(log(FixedRt$Preds), 2, quantile, probs = c(0.025, 0.5, 0.975))
-lines(1:dim(FixedRt$Preds)[2], qqs[2,], col = 'blue', lwd = 3, lty = 1)
-lines(1:dim(FixedRt$Preds)[2], qqs[1,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(FixedRt$Preds)[2], qqs[3,], col = 'blue', lwd = 3, lty = 2)
-
-plot(1:dim(SampledRt$Preds)[2], log(SampledRt$Preds[1,]), type = 'l', xlab = 'Day', ylab = 'Incidences', ylim=c(0,8))
-abline(v = t, col = 'red', lwd = 2)
-for (i in 2:Nsim){lines(1:dim(SampledRt$Preds)[2], log(SampledRt$Preds[i,]))}
-qqs2 <- apply(log(SampledRt$Preds), 2, quantile, probs = c(0.025, 0.5, 0.975))
-lines(1:dim(SampledRt$Preds)[2], qqs2[2,], col = 'blue', lwd = 3, lty = 1)
-lines(1:dim(SampledRt$Preds)[2], qqs2[1,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(SampledRt$Preds)[2], qqs2[3,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(SampledRt$Preds)[2], qqs[2,], col = 'green', lwd = 3, lty = 1)
+PlotForecast(FixedRt$Preds, ylim = c(0,8))
+PlotForecast(SampledRt$Preds, ylim = c(0,8))
 dev.off()
 
 
-par(mfrow=c(1,2), mar=c(4,4,2,2))
-plot(1:dim(FixedRt$Preds)[2], (FixedRt$Preds[1,]), type = 'l', xlab = 'Day', ylab = 'Incidences', ylim = c(0,600), main = 'Devon, fixed R(t)')
-abline(v = t, col = 'red', lwd = 2)
-for (i in 2:Nsim){lines(1:dim(FixedRt$Preds)[2], (FixedRt$Preds[i,]))}
-qqs <- apply((FixedRt$Preds), 2, quantile, probs = c(0.025, 0.5, 0.975))
-lines(1:dim(FixedRt$Preds)[2], qqs[2,], col = 'blue', lwd = 3, lty = 1)
-lines(1:dim(FixedRt$Preds)[2], qqs[1,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(FixedRt$Preds)[2], qqs[3,], col = 'blue', lwd = 3, lty = 2)
-
-plot(1:dim(SampledRt$Preds)[2], (SampledRt$Preds[1,]), type = 'l', xlab = 'Day', ylab = 'Incidences', ylim=c(0,600), main = 'Devon, sampled R(t)')
-abline(v = t, col = 'red', lwd = 2)
-for (i in 2:Nsim){lines(1:dim(SampledRt$Preds)[2], (SampledRt$Preds[i,]))}
-qqs2 <- apply((SampledRt$Preds), 2, quantile, probs = c(0.025, 0.5, 0.975))
-lines(1:dim(SampledRt$Preds)[2], qqs2[2,], col = 'blue', lwd = 3, lty = 1)
-lines(1:dim(SampledRt$Preds)[2], qqs2[1,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(SampledRt$Preds)[2], qqs2[3,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(SampledRt$Preds)[2], qqs[2,], col = 'green', lwd = 3, lty = 1)
 
 
 
 
 
-plot(1:dim(NewPred$Preds)[2], NewPred$Preds[1,], type = 'l', xlab = 'Day', ylab = 'Incidences')
-abline(v = t, col = 'red', lwd = 2)
-for (i in 2:Nsim){lines(1:dim(NewPred$Preds)[2], NewPred$Preds[i,])}
-qqs <- apply(NewPred$Preds, 2, quantile, probs = c(0.025, 0.5, 0.975))
-lines(1:dim(NewPred$Preds)[2], qqs[2,], col = 'blue', lwd = 3, lty = 1)
-lines(1:dim(NewPred$Preds)[2], qqs[1,], col = 'blue', lwd = 3, lty = 2)
-lines(1:dim(NewPred$Preds)[2], qqs[3,], col = 'blue', lwd = 3, lty = 2)
 
 
 
