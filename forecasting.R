@@ -134,6 +134,9 @@ GenerateForecast <- function(UA, R0estimates, Rt_sim = FALSE, Rt_set = NULL, Nsi
 }
 
 PlotForecast <- function(Preds, log = TRUE, uncertainty = TRUE, ...){
+  if (is.null(dim(Preds))){
+    Preds <- Preds$Preds
+  }
   Nsim <- dim(Preds)[1]
   Nt <- dim(Preds)[2]
   if (log == TRUE){
